@@ -1,0 +1,91 @@
+{% load i18n staticfiles solo_tags %}
+{% get_solo 'website.SiteConfiguration' as site_config %}
+<!DOCTYPE HTML>
+<html>
+	
+
+	<head>
+		{% block head %}
+		{% block meta %}
+		<title>{% block title %} {{ site_config.site_name }} {% endblock %}</title>
+		<meta charset="utf-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+	
+		{% endblock meta %}
+		{% endblock head %}
+
+		{% block extra_css %}
+		<link rel="stylesheet" href="{% static  'css/main.css' %}" />
+		{% endblock extra_css %}
+
+	</head>
+
+
+	<body class="{% block body_class %}nav-md {% endblock body_class %}">
+			{% block body %}
+
+
+			{% block content %}
+            <!-- {{ content }} -->
+           {% endblock content %}
+
+
+			{% block footer %}
+			<footer id="footer" class="wrapper">
+					<div class="inner">
+						<section>
+							<div class="box">
+								<div class="content">
+									<h2 class="align-center">Get in Touch</h2>
+									<hr />
+									<form action="#" method="post">
+										<div class="field half first">
+											<label for="name">Name</label>
+											<input name="name" id="name" type="text" placeholder="Name">
+										</div>
+										<div class="field half">
+											<label for="email">Email</label>
+											<input name="email" id="email" type="email" placeholder="Email">
+										</div>
+										<div class="field">
+											<label for="dept">Department</label>
+											<div class="select-wrapper">
+												<select name="dept" id="dept">
+													<option value="">- Category -</option>
+													<option value="1">Manufacturing</option>
+													<option value="1">Shipping</option>
+													<option value="1">Administration</option>
+													<option value="1">Human Resources</option>
+												</select>
+											</div>
+										</div>
+										<div class="field">
+											<label for="message">Message</label>
+											<textarea name="message" id="message" rows="6" placeholder="Message"></textarea>
+										</div>
+										<ul class="actions align-center">
+											<li><input value="Send Message" class="button special" type="submit"></li>
+										</ul>
+									</form>
+								</div>
+							</div>
+						</section>
+						<div class="copyright">
+							&copy; Untitled Design: <a href="https://templated.co/">TEMPLATED</a>. Images <a href="https://unsplash.com/">Unsplash</a>. Video <a href="http://coverr.co/">Coverr</a>.
+						</div>
+					</div>
+				</footer>
+				{% endblock footer %}
+			<!-- Scripts --> {% block javascripts %}
+				<script src="{% static 'js/jquery.min.js' %}"></script>
+				<script src="{% static 'js/jquery.scrolly.min.js' %}"></script>
+				<script src="{% static  'js/jquery.scrollex.min.js' %}"></script>
+				<script src="{% static  'js/skel.min.js' %}"></script>
+				<script src="{% static  'js/util.js' %}"></script>
+				<script src="{% static 'js/main.js' %}"></script>
+				{% endblock %}
+				{% endblock body %}
+		</body>
+			
+</html>
