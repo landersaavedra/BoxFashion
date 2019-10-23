@@ -1,28 +1,30 @@
-# -*- coding: utf-8 -*-
 import random, string
 from django.template.loader import render_to_string
-from django.urls import reverse_lazy
-from django.urls import reverse
 from django.contrib.auth import login, logout
+from django.urls import reverse
+from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 from django.views.generic import View, ListView, DeleteView
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext as _
 from django.contrib import messages
-from .forms import LoginForm, ChangePasswordForm
+from .forms import LoginForm, LoginPartner, LoginCustomer
 from .models import UserProfile
 from .functions import SecurityUtils
 from WebBoxFashion.apps.general_functions import send_email
 from WebBoxFashion.core.json_settings import get_settings
 from WebBoxFashion.apps import response_messages
-from django.contrib.auth import authenticate
-from django.views.generic import TemplateView
-from django.template.response import TemplateResponse
-
+import requests
 
 settings = get_settings()
+
+
+class Login_Partner(View):
+    template_name = "login_partner"
+    form = LoginPartnerForm
+
 
 
 class Login(View):
@@ -30,32 +32,23 @@ class Login(View):
     form = LoginForm
 
     def get(self, request):
-        if request.GET.get('tenant_name', False) and schema_exists(request.GET.get('tenant_name')):
-            protocol = "https" if settings['USE_SSL'] else "http"
-            url_redirect = "{0}://{1}.{2}{3}".format(
-                protocol,
-                request.GET.get('tenant_name'),
-                request.META['HTTP_HOST'],
-                reverse_lazy('security:login')
-            )
-            return HttpResponseRedirect(url_redirect)
         if request.user.is_authenticated:
-            return HttpResponseRedirect(reverse('fluxo:dashboard'))
+            return HttpResponseRedirect(reverse('flow:dashboard'))
         else:
             ctx = {'form': self.form}
             if 'next' in request.GET:
                 ctx['next'] = request.GET['next']
-            return TemplateResponse(request, self.template_name, ctx)
+            return render(request, self.template_name, ctx)
 
     def post(self, request):
         form = self.form(request.POST)
         if form.is_valid():
             login(request, form.my_user)
-            messages.success(request, _("Bem vindo {0}!".format(form.my_user.first_name)))
+            messages.success(request, _("¡Bienvenido {0}!".format(form.my_user.first_name)))
             if 'next' in request.POST:
                 return HttpResponseRedirect(request.POST['next'])
             else:
-                return HttpResponseRedirect(reverse_lazy('fluxo:dashboard'))
+                return HttpResponseRedirect(reverse_lazy('flow:dashboard'))
         else:
             ctx = {'form': form}
             return render(request, self.template_name, ctx)
@@ -65,38 +58,14 @@ class Logout(View):
 
     def get(self, request):
         logout(request)
-        return HttpResponseRedirect(reverse_lazy('security:login'))
-
-
-class SenhaMudarView(View):
-    template_name = "mudarsenha.html"
-
-    def get(self, request):
-        return TemplateResponse(request, self.template_name)
-
-    def post(self, request):
-        email = request.POST['email'] if 'email' in request.POST else None
-        password_one = request.POST['password_one'] if 'password_one' in request.POST else None
-        password_two = request.POST['password_two'] if 'password_two' in request.POST else None
-        userAuth = authenticate(username=email, password=password_one)
-        if userAuth is not None:
-            if password_one != password_two:
-                user = User.objects.get(username=email)
-                user.set_password(password_two)
-                user.save()
-                return HttpResponseRedirect(reverse_lazy('security:login'))
-            else:
-                messages.error(request, _("As senhas sao iguais"))
-        else:
-            messages.error(request, _("Usuario nao identificado"))
-        return self.get(request)
+        return HttpResponseRedirect(reverse_lazy('website:index'))
 
 
 class UserProfileData(LoginRequiredMixin, View):
-    template_name = "form_create_perfil.html"
+    template_name = "userprofile.html"
 
     def get(self, request):
-        return TemplateResponse(request, self.template_name)
+        return render(request, self.template_name)
 
     def post(self, request):
         userprofile = request.user.userprofile
@@ -109,7 +78,7 @@ class UserProfileData(LoginRequiredMixin, View):
         request.user.last_name = request.POST['last_name']
         request.user.email = request.POST['email']
         request.user.save()
-        return HttpResponseRedirect(reverse_lazy('fluxo:dashboard'))
+        return HttpResponseRedirect(reverse_lazy('flow:dashboard'))
 
 
 class ChangePassword(LoginRequiredMixin, View):
@@ -128,9 +97,9 @@ class ChangePassword(LoginRequiredMixin, View):
                 logout(request)
                 return HttpResponseRedirect(reverse_lazy('security:login'))
             else:
-                messages.error(request, _("as senhas nao coincidem"))
+                messages.error(request, _("Las contraseñas no coinciden"))
         else:
-            messages.error(request, _("Error nos dados recebidos"))
+            messages.error(request, _("Error en los datos recibidos"))
         return self.get(request)
 
 
@@ -138,55 +107,6 @@ class UserList(LoginRequiredMixin, ListView):
     template_name = "user_list.html"
     model = UserProfile
     paginate_by = 10
-
-
-class UserNew(LoginRequiredMixin, View):
-    template_name = "user_new.html"
-    model = UserProfile
-    paginate_by = 10
-    fields = ['username', 'first_name', 'last_name', 'email', 'is_superuser', 'is_staff', 'is_active']
-    success_url = reverse_lazy('security:user-new')
-    utils = SecurityUtils()
-
-    def send_welcome_mail(self, request, new_user, new_user_password):
-        protocol = "https" if settings['USE_SSL'] else "http"
-        url_server = "{0}://{1}.{2}{3}".format(
-            protocol,
-            request.tenant.schema_name,
-            settings['BASE_URL'],
-            reverse_lazy("security:login")
-            )
-        ctx = {'user': request.user, 'new_user': new_user, 'new_user_password': new_user_password, 'URL_SERVER': url_server}
-        html_content = render_to_string('mailing/welcome_user.html', ctx)
-        subject = _("Bem vindo ao Portal Gera/ Convite de Novo Usuario")
-        send_email(subject, to_email=new_user.email, html_content=html_content)
-
-    def get(self, request):
-        ctx = {'random_password': self.utils.random_password()}
-        return TemplateResponse(request, self.template_name, ctx)
-
-    def post(self, request):
-        try:
-            user_exist = User.objects.get(email=request.POST['email'])
-        except:
-            user_exist = None
-        if user_exist:
-            messages.error(request, _("Email {0} encontra se registrado no sistema do portal gera".format(request.POST['email'])))
-            ctx = {'random_password': self.utils.random_password(), 'first_name': request.POST['first_name'],
-                   'last_name': request.POST['last_name'], 'email': request.POST['email']}
-            return TemplateResponse(request, self.template_name, ctx)
-        else:
-            new_user = User.objects.create_user(request.POST['email'],
-                                                request.POST['email'],
-                                                request.POST['password'])
-            new_user.first_name = request.POST['first_name']
-            new_user.last_name = request.POST['last_name']
-            new_user.is_active = True  # Activamos al usuario
-            new_user.save()
-            # Enviamos un email de bemvinda
-            self.send_welcome_mail(request, new_user, request.POST['password'])
-            messages.success(request, response_messages.SAVE_SUCCESSFULL)
-            return HttpResponseRedirect(reverse_lazy('security:user-list'))
 
 
 class UserDelete(LoginRequiredMixin, DeleteView):
@@ -199,9 +119,47 @@ class UserDelete(LoginRequiredMixin, DeleteView):
         return super(UserDelete, self).delete(request, *args, **kwargs)
 
 
+class UserNew(LoginRequiredMixin, View):
+    template_name = "user_new.html"
+    utils = SecurityUtils()
+
+    def send_welcome_mail(self, request, new_user, new_user_password):
+        ctx = {'user': request.user, 'new_user': new_user, 'new_user_password': new_user_password, 'URL_SERVER': settings['URL_SERVER']}
+        html_content = render_to_string('mailing/welcome.html', ctx)
+        subject = _("Bienvenido a Cashflow / invitación")
+        send_email(subject, to_email=new_user.email, html_content=html_content)
+
+    def get(self, request):
+        ctx = {'random_password': self.utils.random_password()}
+        return render(request, self.template_name, ctx)
+
+    def post(self, request):
+        try:
+            user_exist = User.objects.get(email=request.POST['email'])
+        except:
+            user_exist = None
+        if user_exist:
+            messages.error(request, _("Email {0} ya se encuentra registrado en el sistema".format(request.POST['email'])))
+            ctx = {'random_password': self.utils.random_password(), 'first_name': request.POST['first_name'],
+                   'last_name': request.POST['last_name'], 'email': request.POST['email']}
+            return render(request, self.template_name, ctx)
+        else:
+            new_user = User.objects.create_user(request.POST['email'],
+                                                request.POST['email'],
+                                                request.POST['password'])
+            new_user.first_name = request.POST['first_name']
+            new_user.last_name = request.POST['last_name']
+            new_user.is_active = True  # Activamos al usuario
+            new_user.save()
+            # Enviamos un email de bienvenida
+            self.send_welcome_mail(request, new_user, request.POST['password'])
+            messages.success(request, response_messages.SAVE_SUCCESSFULL)
+            return HttpResponseRedirect(reverse_lazy('security:user-list'))
+
+
 class ActiveInactiveUser(LoginRequiredMixin, View):
     """
-    Ativamos / Desativamos usuarios.
+    Activamos / Desactivamos usuarios.
     """
 
     def get(self, request, user_id):
@@ -211,16 +169,5 @@ class ActiveInactiveUser(LoginRequiredMixin, View):
             user.save()
             messages.success(request, response_messages.UPDATE_SUCCESSFULL)
         except User.DoesNotExist:
-            messages.error(request, _("Usuario nao encontrado"))
+            messages.error(request, _("Usuario no encontrado"))
         return HttpResponseRedirect(reverse_lazy('security:user-list'))
-
-
-class PreLoginView(View):
-    template_name = "pre_login.html"
-    active_menu = "login"
-
-    def get(self, request):
-        return render(request, self.template_name)
-
-    def post(self, request):
-        return request(request, self.template_name)

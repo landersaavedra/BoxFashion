@@ -1,9 +1,68 @@
 from django import forms
 from django.contrib.auth.models import User
+from WebBoxFashion.apps.security.models import Login_Partner, Login_Customer
+
+class LoginCustomer(forms.Form):
+
+    sname = forms.CharField(widget=forms.EmailInput(attrs=({'class': 'validate'})), required=True)
+    scontrasenia = forms.CharField(widget=forms.PasswordInput(render_value=False, attrs=({'class': 'validate'})), required=True)
+    my_user = None  # Si se logea un usuario correctamente entonces se almacena aquí la sesión.
+    
+    def clean_contrasenia(self):
+        from django.contrib.auth import authenticate
+
+        try:
+           user = Login_Customer.get(email=self.cleaned_data['email'])
+        except:
+           user = None
+        if user:
+            user_auth = authenticate(sname=user.sname, scontrasenia=self.cleaned_data['scontrasenia'])
+        else:
+            user_auth = None
+        
+        if user_auth is not None:
+            if user.is_active:
+                self.my_user = user_auth
+                pass
+            else:
+                raise forms.ValidationError("Lo lamentamos, el usuario se encuentra deshabilitado")
+        else:
+            raise forms.ValidationError("Email y/o contraseña incorrecta")
+
+class LoginPartner(forms.Form):
+
+    sname = forms.CharField(widget=forms.EmailInput(attrs=({'class': 'validate'})), required=True)
+    scontrasenia = forms.CharField(widget=forms.PasswordInput(render_value=False, attrs=({'class': 'validate'})), required=True)
+    my_user = None  # Si se logea un usuario correctamente entonces se almacena aquí la sesión.
+    
+    
+    def clean_contrasenia(self):
+       
+       from django.contrib.auth import authenticate
+       
+       try:
+           user = Login_Partner.get(email=self.cleaned_data['email'])
+       except:
+           user = None
+        
+       if user:
+            user_auth = authenticate(sname=user.sname, scontrasenia=self.cleaned_data['scontrasenia'])
+       else:
+            user_auth = None
+        
+       if user_auth is not None:
+           if user.is_active:
+                self.my_user = user_auth
+                pass
+           else:
+                raise forms.ValidationError("Lo lamentamos, el usuario se encuentra deshabilitado")
+       else:
+            raise forms.ValidationError("Email y/o contraseña incorrecta")
+        
+
 
 
 class LoginForm(forms.Form):
-
     email = forms.CharField(widget=forms.EmailInput(attrs=({'class': 'validate'})), required=True)
     password = forms.CharField(widget=forms.PasswordInput(render_value=False, attrs=({'class': 'validate'})), required=True)
     my_user = None  # Si se logea un usuario correctamente entonces se almacena aquí la sesión.

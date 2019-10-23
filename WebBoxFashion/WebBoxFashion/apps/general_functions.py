@@ -1,5 +1,5 @@
 from django.core.mail import EmailMultiAlternatives
-from WebBoxFashion.core.json_settings import get_settings
+from ..core.json_settings import get_settings
 
 settings = get_settings()
 
