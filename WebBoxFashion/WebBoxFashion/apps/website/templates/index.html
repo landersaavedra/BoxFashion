@@ -13,7 +13,9 @@
 
 		<!-- Header -->
 			<header id="header" class="alt">
-				<div class="logo"><a href="index.html">Box Fashion </a></div>
+				<div class="logo">
+					<a href="index.html">{%trans 'Box Fashion'%} </a>
+			    </div>
 				<a href="#menu" class="toggle"><span>Menu</span></a>
 			</header>
 
@@ -21,7 +23,7 @@
 			<nav id="menu">
 				<ul class="links">
 					<li><a href="index.html">Home</a></li>
-					<li><a class="nav-link active" href="{% url 'security:login' %}">{% trans 'Ingresar' %}</a></li>
+					<li><a class="nav-link active" href="{% url 'security:login_customer' %}">{% trans 'Ingresar' %}</a></li>
 					<li><a href="{%url 'security:login_partner'%}">{% trans 'Sea un Socio' %}</a></li>
 				</ul>
 			</nav>
@@ -34,10 +36,12 @@
 		-->
 			<section id="banner" data-video="images/banner">
 				<div class="inner">
-					<h1>Box Fashion</h1>
+					<!--<h1>Box Fashion</h1>
 					<p>El Delivery de Moda que sabe lo que Buscas <br />
-					</p>
-					<a href="#one" class="button special scrolly">Get Started</a>
+					</p> -->
+					<img src="{% static '/img/logos/white_logo_transparent_background.png' %}" style="width: 60%; height: 20%;" />
+					<br/>
+					<a href="{% url 'security:register_customer' %}" class="button special scrolly">{% trans 'Registrate' %}</a>
 				</div>
 			</section>
 
@@ -73,7 +77,7 @@
 							</header>
 							<p>Cuentanos tus preferencias, tamaño y que cambios de estilo deseas tener.</p>
 							<ul class="actions">
-								<li><a href="#" class="button alt">Registrate</a></li>
+								<li><a href="{% url 'security:register_customer' %}" class="button alt">Registrate</a></li>
 							</ul>
 						</div>
 						<div>

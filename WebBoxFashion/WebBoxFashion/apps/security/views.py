@@ -10,21 +10,88 @@ from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext as _
 from django.contrib import messages
-from .forms import LoginForm, LoginPartner, LoginCustomer
+from .forms import LoginForm, LoginPartnerForm, LoginCustomerForm
 from .models import UserProfile
 from .functions import SecurityUtils
 from WebBoxFashion.apps.general_functions import send_email
 from WebBoxFashion.core.json_settings import get_settings
 from WebBoxFashion.apps import response_messages
 import requests
+from django.views.generic import TemplateView
+
 
 settings = get_settings()
 
 
 class Login_Partner(View):
-    template_name = "login_partner"
+    template_name = "login_partner.html"
     form = LoginPartnerForm
 
+    def get(self, request):
+        if request.user.is_authenticated:
+            return HttpResponseRedirect(reverse('flow:dashboard_partner'))
+        else:
+            ctx = {'form':self.form}
+            if 'next' in request.GET:
+                ctx['next'] = request.GET['next']
+            return render(request, self.template_name, ctx)
+    
+    def post(self, request):
+        form = self.form(request.POST)
+        if form.is_valid():
+            login(request, form.my_user)
+            messages.success(request, _("¡Bienvenido {0}!".format(form.my_user.sname)))
+            if 'next' in request.POST:
+                return HttpResponseRedirect(request.POST['next'])
+            else:
+                return HttpResponseRedirect(reverse_lazy('flow:dashboard_partner'))
+        else:
+            ctx = {'form': form}
+            return render(request, self.template_name, ctx)
+
+class Login_Customer(View):
+    template_name = "login_customer.html"
+    form = LoginCustomerForm
+
+    def get(self, request):
+        if request.user.is_authenticated:
+            return HttpResponseRedirect(reverse('flow:profile_customer'))
+        else:
+            ctx = {'form':self.form}
+            if 'next' in request.GET:
+                ctx['next'] = request.GET['next']
+            return render(request, self.template_name, ctx)
+    
+    def post(self, request):
+        form = self.form(request.POST)
+        if form.is_valid():
+            login(request, form.my_user)
+            messages.success(request, _("¡Bienvenido {0}!".format(form.my_user.sname)))
+            if 'next' in request.POST:
+                return HttpResponseRedirect(request.POST['next'])
+            else:
+                return HttpResponseRedirect(reverse_lazy('flow:profile_customer'))
+        else:
+            ctx = {'form': form}
+            return render(request, self.template_name, ctx)    
+        
+class Register_Customer(TemplateView):
+    template_name = "register_customer.html"
+
+    #def send_welcome_mail(self, request, new_user, new_user_password):
+    #    ctx = {'user': request.user, 'new_user': new_user, 'new_user_password': new_user_password, 'URL_SERVER': settings['URL_SERVER']}
+    #    html_content = render_to_string('mailing/welcome.html', ctx)
+    #    subject = _("Bienvenido a Cashflow / invitación")
+    #    send_email(subject, to_email=new_user.email, html_content=html_content)
+
+    #def get(self, request):
+    #    return HttpResponseRedirect(reverse('flow:profile_customer'))
+
+class Register_Partner(TemplateView):
+    template_name = "register_partner.html"
+
+    #def get(self, request):
+    #    return HttpResponseRedirect(reverse('flow:profile_customer'))
 
 
 class Login(View):

@@ -3,6 +3,7 @@ from django.contrib import admin
 from .models import Account, Transaction, Category, TransactionComment, Quiz_Master, Quiz_Customer
 from .models  import Choose_Customer,register_partners
 
+
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
     list_display = ('created_by', 'name', 'timestamp', 'is_active')

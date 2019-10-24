@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from WebBoxFashion.apps.security.models import Login_Partner, Login_Customer
 
-class LoginCustomer(forms.Form):
+class LoginCustomerForm(forms.Form):
 
     sname = forms.CharField(widget=forms.EmailInput(attrs=({'class': 'validate'})), required=True)
     scontrasenia = forms.CharField(widget=forms.PasswordInput(render_value=False, attrs=({'class': 'validate'})), required=True)
@@ -29,7 +29,7 @@ class LoginCustomer(forms.Form):
         else:
             raise forms.ValidationError("Email y/o contraseña incorrecta")
 
-class LoginPartner(forms.Form):
+class LoginPartnerForm(forms.Form):
 
     sname = forms.CharField(widget=forms.EmailInput(attrs=({'class': 'validate'})), required=True)
     scontrasenia = forms.CharField(widget=forms.PasswordInput(render_value=False, attrs=({'class': 'validate'})), required=True)

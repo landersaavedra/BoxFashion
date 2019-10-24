@@ -1,0 +1,91 @@
+{% load i18n static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{% trans 'Login' %}</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="{%static '/css/login.css' %}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.slim.min.js"/>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css"/>
+
+</head>
+<body>
+<div class="container">
+<div class="row">
+ <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
+  <div class="card card-signin my-5">
+   <div class="card-body">
+    <h5 class="card-title text-center">{% trans 'Ingresar' %}</h5>
+   <form class="form-signin" method="post" action=".">
+    <div class="form-label-group">
+
+      {% csrf_token %}
+        {% if next %}
+            <input type="hidden" class="form-control"  name="next" value="{{ next }}">
+        {% endif %}
+        <!-- Email -->
+        <label for="{{ form.email.id }}"> {{ form.email.label }}</label><br>
+        <input type="sname" name="sname" id="id_email" class="form-control" placeholder="{% trans 'Email' %}">
+        {% if form.sname.errors %}
+            {% for error  in form.sname.errors %}
+                <div>
+                    <small>{{ error }}</small>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+        <!-- Finaliza Email -->
+
+        <!-- Password -->
+    <div class="form-label-group">
+        <label for="{{ form.scontrasenia.id }}"> {{ form.scontrasenia.label }}</label><br>
+        <input type="scontrasenia" name="scontrasenia" class="form-control" id="id_password"
+               placeholder="{% trans 'Contraseña' %}">
+        {% if form.scontrasenia.errors %}
+            {% for error  in form.scontrasenia.errors %}
+                <div>
+                    <small>{{ error }}</small>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+        <!-- Fin Password -->
+        <div class="custom-control custom-checkbox mb-3">
+                <input type="checkbox" class="custom-control-input" id="customCheck1">
+                <label class="custom-control-label" for="customCheck1">{% trans 'Recordar Contraseña' %}</label>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit">{% trans 'Ingresar' %}</button>
+        <hr class="my-4">
+        <button class="btn btn-lg btn-google btn-block text-uppercase" type="submit"><i class="fab fa-google mr-2"></i> Sign in with Google</button>
+        <button class="btn btn-lg btn-facebook btn-block text-uppercase" type="submit"><i class="fab fa-facebook-f mr-2"></i> Sign in with Facebook</button>
+   
+        <table style="margin: auto;width: 100px;border-collapse: separate;border-spacing: 22px 5px; ">
+       
+            <tr>
+             
+                    <td ><a href="/" class="btn-link pull-right"><small>{% trans 'Regresar' %}</small></a></td>
+                    <td ><a href="{% url 'security:register_partner' %}" class="btn-link pull-right"><small>{% trans 'Registrarse' %}</small></a></td>
+           </tr>
+        </table>
+     
+
+    </form>
+</div> <!-- /container -->
+</div>
+</div>
+</div>
+</div>
+
+<!-- Scripts -->
+<script src="{% static '/js/jquery.min.js' %}"></script>
+<script src="{% static '/js/jquery.scrolly.min.js' %}"></script>
+<script src="{% static '/js/jquery.scrollex.min.js' %}"></script>
+<script src="{% static '/js/skel.min.js' %}"></script>
+<script src="{% static '/js/util.js' %}"></script>
+<script src="{% static '/js/main.js' %}"></script>
+</body>
+</html>
